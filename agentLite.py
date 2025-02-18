@@ -22,7 +22,7 @@ FAISS_INDEX_FILE = "faiss_index.index"
 emb_model="text-embedding-ada-002"
 chat_model="gpt-4"
 
-# Load or create FAISS index.. OpenAI model embeddings used (1536 dimensions)
+# Load or create FAISS index.. OpenAI model embeddings (1536 dimensions)
 def load_faiss(dim=1536):
     try:
         if os.path.exists(FAISS_INDEX_FILE):
