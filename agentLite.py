@@ -6,13 +6,15 @@ import json
 import os
 import numpy as np
 import faiss
+import time
 import logging
 
 logging.basicConfig(
     filename='agent.log',
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(levelname)s - %(message)s',
 )
+
 logger = logging.getLogger(__name__)
 
 # Document store for storing query, summary and raw results from web & faiss index file to store faiss index for similarity search
@@ -101,12 +103,46 @@ def perform_action(agent, action, action_function, *args):
         agent["memory"].append(f"Failed to perform action: {action}. Error: {e}")
         return None
 
-def receive_feedback(agent, feedback):
+#receiving feedback for a task
+def receive_feedback(agent, task_id, feedback):
     try:
-        logger.info(f"{agent['name']} received feedback: {feedback}")
-        agent["memory"].append(f"Received feedback: {feedback}")
+        logger.info(f"{agent['name']} received feedback for task {task_id}: {feedback}")
+        if "feedback" not in agent:
+            agent["feedback"] = {}
+        agent["feedback"][task_id] = feedback
     except Exception as e:
         logger.error(f"Error receiving feedback: {e}")
+
+#analyse the feedback..mark it as positive or negative
+def analyze_feedback(agent):
+    try:
+        if "feedback" not in agent or not agent["feedback"]:
+            return "No feedback received yet."
+        
+        positive = sum(1 for f in agent["feedback"].values() if "good" in f.lower())
+        negative = sum(1 for f in agent["feedback"].values() if "bad" in f.lower())
+        
+        return f"Feedback analysis: {positive} positive, {negative} negative."
+    except Exception as e:
+        logger.error(f"Error analyzing feedback: {e}")
+        return None
+
+#adapt the behavior based on the feedback 
+def adapt_behavior(agent):
+    try:
+        if "feedback" not in agent:
+            return
+        
+        for task_id, feedback in agent["feedback"].items():
+            if "short" in feedback.lower():
+                logger.info(f"Adjusting summarization prompt for task {task_id}.")
+                agent["summarization_prompt"] = (
+                    "Summarize the following content in 4-5 sentences, providing detailed insights:\n\n{content}"
+                )
+            elif "irrelevant" in feedback.lower():
+                logger.info(f"Refining search query for task {task_id}.")
+    except Exception as e:
+        logger.error(f"Error adapting behavior: {e}")
 
 #searches web with duckduckgo and extracts top 3 results based on the query
 def search_web(query):
@@ -156,6 +192,7 @@ def execute_task(task_description, agent, actions):
     logger.info(f"{agent['name']} is thinking: {thought}")
     results = []
     for action_name, action_function, *args in actions:
+        logger.info(f"Performing action: {action_name}")
         result = perform_action(agent, action_name, action_function, *args)
         results.append(result)
     
@@ -166,16 +203,36 @@ def execute_task(task_description, agent, actions):
             flattened_results.extend(item)
         else:
             flattened_results.append(item)
+
+    logger.info("Summarizing results...")
     
-    # Summarize the results
     summary = summarize_content("\n".join(flattened_results))
-    receive_feedback(agent, f"Task completed. Summary: {summary}")
+
+    logger.info(f"Task completed..")
+
+    print(f"Task Summary:\n{summary}\n")
+    task_id = str(int(time.time()))
+    receive_feedback(agent, task_id, f"Task completed. Summary: {summary}")
+
+    user_feedback = collect_user_feedback()
+    if user_feedback:
+        logger.info(f"User feedback received: {user_feedback}")
+        receive_feedback(agent, task_id, f"User feedback: {user_feedback}")
+
+    logger.info("Analyzing feedback...")
+
+    feedback_analysis = analyze_feedback(agent)
+    print(feedback_analysis)
+
     return summary, flattened_results
 
+def collect_user_feedback():
+    feedback = input("Please provide your feedback (or press Enter to skip): ")
+    return feedback
+
 #scheduler function coordinates the execution of a task by creating an agent and running the task
-def run_scheduler(task_description, agent_name, actions):
+def run_scheduler(task_description, agent, actions):
     logger.info("Starting scheduler...")
-    agent = create_agent(agent_name)
     summary, flattened_results = execute_task(task_description, agent, actions)
     logger.info(f"Task summary: {summary}")
     logger.info("Scheduler finished.")
@@ -217,11 +274,12 @@ def main():
         else:
             logger.info(f"Similar query found but not in document store: {similar_query}")
 
+    agent = create_agent(args.agent)
     actions = [
         ("search_web", search_web, args.task),
     ]
 
-    summary, flattened_results = run_scheduler(args.task, args.agent, actions)
+    summary, flattened_results = run_scheduler(args.task, agent, actions)
 
     document_store[normalized_query] = {
         "summary": summary,
