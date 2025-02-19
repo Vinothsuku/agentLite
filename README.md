@@ -1,7 +1,9 @@
 # agentLite
 A Simple Modular Agentic Framework, that can be extended for multiple use cases, leveraging tools like OpenAI — GPT-4, FAISS for similary search and DuckDuckGo for web scraping for real-time data retrieval
 
-Blog post [link] (https://vinothsuku.medium.com/agentlite-a-simple-modular-agentic-framework-for-ai-apps-a04823a52777)
+Blog post [link] 
+
+[link]: https://vinothsuku.medium.com/agentlite-a-simple-modular-agentic-framework-for-ai-apps-a04823a52777
 
 # Key Components of agentLite
 1. Agent Core:
