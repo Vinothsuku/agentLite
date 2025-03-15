@@ -8,7 +8,7 @@ class LLMProvider(Enum):
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
     COHERE = "cohere"
-    LOCAL = "local"  # For local models like LlamaCpp
+    LOCAL = "local"
 
 @dataclass
 class LLMConfig:
@@ -22,7 +22,7 @@ class LLMConfig:
 @dataclass
 class AgentConfig:
     name: str
-    memory_type: str = "simple"  # simple, vector, persistent
+    memory_type: str = "simple"
     max_memory_items: int = 1000
     embedding_model: Optional[str] = None
     document_store: str = "document_store.json"
