@@ -4,7 +4,7 @@ A lightweight and modular toolkit for prototyping AI agents that can perform tas
 
 **Key Features:**
 - **Web Search Integration**: Searches the web using DuckDuckGo and extracts relevant results.
-- **Content Summarization**: Uses OpenAI's GPT-4 to generate concise summaries of retrieved content.
+- **Content Summarization**: Uses OpenAI's GPT-4 (by default but its configurable) to generate concise summaries of retrieved content
 - **Feedback-Driven Adaptation**: Agents can analyze user feedback and adapt their behavior over time.
 - **Memory and Logging**: Agents maintain a memory of actions and results, with detailed logging for debugging and analysis.
 - **Modular Design**: Easily add new actions, modify existing ones, or integrate with other APIs.
@@ -17,9 +17,9 @@ A lightweight and modular toolkit for prototyping AI agents that can perform tas
 **Get Started:**
 - Clone the repository.
 - Install dependencies: pip install openai requests beautifulsoup4 faiss-cpu numpy.
-- Set your OpenAI API key and run the agent: python main.py --task "Your task description" --api_key "your_openai_api_key".
+- Set your OpenAI API key in the config.yaml file and run the agent: python main.py --task "Your task description" --config "config.yaml"
+  
 Contribute:
-
 Feel free to fork, star, or contribute to this project! Suggestions, bug reports, and feature requests are welcome
 
 Blog post [link] 
